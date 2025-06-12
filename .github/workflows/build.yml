@@ -74,11 +74,11 @@ jobs:
           mkdir staging
 
           if [ "${{ matrix.host }}" = "windows" ]; then
-            cp "output/${{ matrix.target }}/release/$BIN.exe" staging/
+            cp "output/${{ matrix.target }}/release/rbxlx-to-rojo.exe" staging/
             cd staging
             7z a ../$ARTIFACT_NAME *
           else
-            cp "output/${{ matrix.target }}/release/$BIN" staging/
+            cp "output/${{ matrix.target }}/release/rbxlx-to-rojo" staging/
             cd staging
             zip ../$ARTIFACT_NAME *
           fi
