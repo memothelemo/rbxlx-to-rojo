@@ -14,7 +14,6 @@ enum Problem {
     InvalidFile,
     IoError(&'static str, io::Error),
     NFDCancel,
-    NFDError(String),
     XMLDecodeError(rbx_xml::DecodeError),
 }
 
@@ -36,12 +35,6 @@ impl fmt::Display for Problem {
             }
 
             Problem::NFDCancel => write!(formatter, "Didn't choose a file."),
-
-            Problem::NFDError(error) => write!(
-                formatter,
-                "Something went wrong when choosing a file: {}",
-                error,
-            ),
 
             Problem::XMLDecodeError(error) => write!(
                 formatter,
@@ -94,16 +87,24 @@ fn routine() -> Result<(), Problem> {
     info!("rbxlx-to-rojo {}", env!("CARGO_PKG_VERSION"));
 
     info!("Select a place file.");
-    let file_path = PathBuf::from(match std::env::args().nth(1) {
-        Some(text) => text,
-        None => match nfd::open_file_dialog(Some("rbxl,rbxm,rbxlx,rbxmx"), None)
-            .map_err(|error| Problem::NFDError(error.to_string()))?
-        {
-            nfd::Response::Okay(path) => path,
-            nfd::Response::Cancel => Err(Problem::NFDCancel)?,
-            _ => unreachable!(),
-        },
-    });
+    let file_path = match std::env::args().nth(1) {
+        Some(text) => PathBuf::from(text),
+        None => {
+            let mut fd = rfd::FileDialog::new()
+                .add_filter("Roblox Place File", &["rbxl", "rbxlx"])
+                .set_title("Select a Roblox place file");
+
+            // Let the operating system handle with unset directory.
+            if let Ok(cwd) = std::env::current_dir() {
+                fd = fd.set_directory(cwd);
+            }
+
+            match fd.pick_file() {
+                Some(path) => path,
+                None => Err(Problem::NFDCancel)?,
+            }
+        }
+    };
 
     info!("Opening place file");
     let file_source = BufReader::new(
@@ -126,16 +127,22 @@ fn routine() -> Result<(), Problem> {
     }?;
 
     info!("Select the path to put your Rojo project in.");
-    let root = PathBuf::from(match std::env::args().nth(2) {
-        Some(text) => text,
-        None => match nfd::open_pick_folder(Some(&file_path.parent().unwrap().to_string_lossy()))
-            .map_err(|error| Problem::NFDError(error.to_string()))?
-        {
-            nfd::Response::Okay(path) => path,
-            nfd::Response::Cancel => Err(Problem::NFDCancel)?,
-            _ => unreachable!(),
-        },
-    });
+    let root = match std::env::args().nth(2) {
+        Some(text) => PathBuf::from(text),
+        None => {
+            let mut fd = rfd::FileDialog::new().set_title("Select a folder to put Rojo project in");
+
+            // Let the operating system handle with unset directory.
+            if let Ok(cwd) = std::env::current_dir() {
+                fd = fd.set_directory(cwd);
+            }
+
+            match fd.pick_folder() {
+                Some(path) => path,
+                None => Err(Problem::NFDCancel)?,
+            }
+        }
+    };
 
     let mut filesystem = FileSystem::from_root(root.join(file_path.file_stem().unwrap()).into());
 
