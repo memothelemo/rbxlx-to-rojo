@@ -3,9 +3,11 @@ on:
   push:
     branches:
     - master
+    - memothelemo/patch
   pull_request:
     branches:
     - master
+    - memothelemo/patch
 jobs:
   test:
     runs-on: ubuntu-latest
