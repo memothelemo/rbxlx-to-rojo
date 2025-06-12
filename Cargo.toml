@@ -28,6 +28,9 @@ serde_json = "1.0"
 # CLI
 rfd = { version = "0.15.3", optional = true }
 
+[build-dependencies]
+embed-resource = "3.0.3"
+
 [dev-dependencies]
 pretty_assertions = "0.6"
 
