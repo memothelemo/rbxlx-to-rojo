@@ -1,4 +1,4 @@
-use rbx_dom_weak::Instance;
+use rbx_dom_weak::{Instance, Ustr};
 use serde::{Deserialize, Serialize, Serializer};
 use std::{
     borrow::Cow,
@@ -24,7 +24,7 @@ fn replace_backslashes<S: Serializer>(
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 pub struct TreePartition {
     #[serde(rename = "$className")]
-    pub class_name: String,
+    pub class_name: Ustr,
 
     #[serde(flatten)]
     #[serde(skip_serializing_if = "BTreeMap::is_empty")]
@@ -46,7 +46,7 @@ pub struct TreePartition {
 pub(crate) struct MetaFile {
     #[serde(rename = "className")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub class_name: Option<String>,
+    pub class_name: Option<Ustr>,
 
     // #[serde(rename = "properties")]
     // #[serde(skip_serializing_if = "BTreeMap::is_empty")]

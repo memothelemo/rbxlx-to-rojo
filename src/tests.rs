@@ -1,19 +1,14 @@
 use crate::{filesystem::FileSystem, process_instructions, structures::*};
 use log::info;
 use pretty_assertions::assert_eq;
-use rbx_dom_weak::types::Variant;
+use rbx_dom_weak::{types::Variant, UstrMap};
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::{BTreeMap, HashMap},
-    fs,
-    io::ErrorKind,
-    time::Instant,
-};
+use std::{collections::BTreeMap, fs, io::ErrorKind, time::Instant};
 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 enum VirtualFileContents {
     Bytes(String),
-    Instance(HashMap<String, Variant>),
+    Instance(UstrMap<Variant>),
     Vfs(VirtualFileSystem),
 }
 

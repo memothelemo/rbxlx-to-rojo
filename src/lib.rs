@@ -1,8 +1,9 @@
 use log::debug;
 use rbx_dom_weak::{
     types::{Ref, Variant},
-    Instance, WeakDom,
+    Instance, Ustr, WeakDom,
 };
+use rbx_reflection::ClassTag;
 use std::{
     borrow::Cow,
     collections::{HashMap, HashSet},
@@ -71,7 +72,11 @@ fn repr_instance<'a>(
                 _ => unreachable!(),
             };
 
-            let source = match child.properties.get("Source").expect("no Source") {
+            let source = match child
+                .properties
+                .get(&Ustr::from("Source"))
+                .expect("no Source")
+            {
                 Variant::String(value) => value,
                 _ => unreachable!(),
             }
@@ -168,11 +173,14 @@ fn repr_instance<'a>(
 
         other_class => {
             // When all else fails, we can make a meta folder if there's scripts in it
-            match rbx_reflection::get_class_descriptor(other_class) {
+            let reflection = rbx_reflection_database::get();
+            match reflection.classes.get(other_class) {
                 Some(reflected) => {
                     let treat_as_service = RESPECTED_SERVICES.contains(other_class);
-                    // Don't represent services not in respected-services
-                    if reflected.is_service() && !treat_as_service {
+                    let is_service = reflected.tags.contains(&ClassTag::Service);
+
+                    // // Don't represent services not in respected-services
+                    if is_service && !treat_as_service {
                         return None;
                     }
 
